@@ -19,12 +19,20 @@ class CharsViewModel @Inject constructor(
     private val useCaseHandler: UseCaseHandler,
 ): ViewModel() {
 
+    private val mIsRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = mIsRefreshing.asStateFlow()
     private val mState = MutableStateFlow<List<CharacterModel>>(emptyList())
     val state: StateFlow<List<CharacterModel>> = mState.asStateFlow()
 
     private val mStateErr = MutableStateFlow(Throwable(""))
     val stateErr: StateFlow<Throwable> = mStateErr.asStateFlow()
 
+    fun onRefresh() {
+        viewModelScope.launch {
+            mIsRefreshing.value = true
+            getData()
+        }
+    }
     init {
         viewModelScope.launch {
             getData()
@@ -37,9 +45,11 @@ class CharsViewModel @Inject constructor(
             object : UseCase.UseCaseCallback<GetPosts.ResponseValue> {
                 override suspend fun onSuccess(responseValue: GetPosts.ResponseValue) {
                     mState.value = responseValue.anValue
+                    mIsRefreshing.value = false
                 }
                 override fun onError(t: Throwable) {
                     mStateErr.value = t
+                    mIsRefreshing.value = false
                 }
             }
         )

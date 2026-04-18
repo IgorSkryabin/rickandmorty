@@ -24,6 +24,8 @@ import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -136,10 +138,13 @@ fun CharactersList(
 ) {
     val charsList by charsViewModel.state.collectAsState()
     val errorMsg by charsViewModel.stateErr.collectAsState()
+    val isRefreshing by charsViewModel.isRefreshing.collectAsState()
 
     CharactersListScreen(
         charsList = charsList,
+        isRefreshing = isRefreshing,
         errorMsg = errorMsg.message.toString(),
+        onRefresh = { charsViewModel.onRefresh() },
         onNavigateToCharInfo = onNavigateToCharInfo,
     )
 }
@@ -148,7 +153,9 @@ fun CharactersList(
 @Composable
 fun CharactersListScreen(
     charsList: List<CharacterModel> = listOf(aChar, aChar, aChar, aChar, aChar, aChar),
+    isRefreshing: Boolean = false,
     errorMsg: String = "",
+    onRefresh: () -> Unit = {},
     onNavigateToCharInfo: (charId: Int?) -> Unit = {},
 ) {
 
@@ -209,10 +216,14 @@ fun CharactersListScreen(
                     )
                 }
             }
-
+            val pullRefreshState = rememberPullRefreshState(
+                refreshing = isRefreshing,
+                onRefresh = onRefresh
+            )
             Box(
                 modifier = Modifier
-                    .fillMaxSize(),
+                    .fillMaxSize()
+                    .pullRefresh(pullRefreshState),
                 contentAlignment = Alignment.Center
             ) {
                 if (charsList.isEmpty() && errorMsg.isNotBlank()) {
@@ -337,6 +348,13 @@ fun CharactersListScreen(
                         }
                     }
                 }
+                androidx.compose.material.pullrefresh.PullRefreshIndicator(
+                    refreshing = isRefreshing,
+                    state = pullRefreshState,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    backgroundColor = colorResource(R.color.greenDarkEmerald),
+                    contentColor = Color.White
+                )
             }
         }
     }
