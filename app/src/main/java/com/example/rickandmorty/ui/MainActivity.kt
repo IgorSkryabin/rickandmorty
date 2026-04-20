@@ -145,6 +145,7 @@ fun CharactersList(
         isRefreshing = isRefreshing,
         errorMsg = errorMsg.message.toString(),
         onRefresh = { charsViewModel.onRefresh() },
+        onSearch = { charsViewModel.searchByTextField(it) },
         onNavigateToCharInfo = onNavigateToCharInfo,
     )
 }
@@ -156,6 +157,7 @@ fun CharactersListScreen(
     isRefreshing: Boolean = false,
     errorMsg: String = "",
     onRefresh: () -> Unit = {},
+    onSearch: (String) -> Unit = {},
     onNavigateToCharInfo: (charId: Int?) -> Unit = {},
 ) {
 
@@ -208,7 +210,7 @@ fun CharactersListScreen(
                         unfocusedTextColor = Color.White,
                     ),
                 )
-                IconButton(onClick = {  }) {
+                IconButton(onClick = { onSearch(textFieldValue) }) {
                     Icon(
                         painterResource(R.drawable.ic_search),
                         contentDescription = "Search",

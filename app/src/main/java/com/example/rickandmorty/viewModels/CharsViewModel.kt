@@ -8,8 +8,11 @@ import com.example.rickandmorty.domain.GetPosts
 import com.example.rickandmorty.models.CharacterModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,10 +22,26 @@ class CharsViewModel @Inject constructor(
     private val useCaseHandler: UseCaseHandler,
 ): ViewModel() {
 
+    private val mSearchField = MutableStateFlow("")
+    val searchField: StateFlow<String> = mSearchField.asStateFlow()
     private val mIsRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = mIsRefreshing.asStateFlow()
     private val mState = MutableStateFlow<List<CharacterModel>>(emptyList())
-    val state: StateFlow<List<CharacterModel>> = mState.asStateFlow()
+    val state: StateFlow<List<CharacterModel>> = combine(
+        mState,
+        searchField,
+    ) { mState, searchField ->
+        mState.filter { char ->
+            val matchesQuery = searchField.isBlank() ||
+                    char.name?.lowercase()?.contains(searchField.lowercase()) == true
+
+            matchesQuery
+        }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        emptyList()
+    )
 
     private val mStateErr = MutableStateFlow(Throwable(""))
     val stateErr: StateFlow<Throwable> = mStateErr.asStateFlow()
@@ -30,6 +49,7 @@ class CharsViewModel @Inject constructor(
     fun onRefresh() {
         viewModelScope.launch {
             mIsRefreshing.value = true
+            mSearchField.value = ""
             getData()
         }
     }
@@ -39,6 +59,9 @@ class CharsViewModel @Inject constructor(
         }
     }
 
+    fun searchByTextField(text: String) {
+        mSearchField.value = text
+    }
     private suspend fun getData() {
         useCaseHandler.execute(
             getPosts,
