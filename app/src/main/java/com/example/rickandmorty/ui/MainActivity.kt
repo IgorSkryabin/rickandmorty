@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
@@ -32,13 +34,16 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -150,6 +155,17 @@ fun CharactersList(
         onRefresh = { charsViewModel.onRefresh() },
         onSearch = { charsViewModel.searchByTextField(it) },
         onNavigateToCharInfo = onNavigateToCharInfo,
+        onFilter = { type, value ->
+            when (type) {
+                "Status" -> charsViewModel.setStatusFilter(value)
+                "Gender" -> charsViewModel.setGenderFilter(value)
+                "Species" -> charsViewModel.setSpeciesFilter(value)
+                "Origin" -> charsViewModel.setOriginFilter(value)
+                "Location" -> charsViewModel.setLocationFilter(value)
+            }
+        },
+        onClearFilters = { charsViewModel.clearFilters() },
+        currentFilters = charsViewModel.getFilterValues()
     )
 }
 
@@ -163,8 +179,11 @@ fun CharactersListScreen(
     onRefresh: () -> Unit = {},
     onSearch: (String) -> Unit = {},
     onNavigateToCharInfo: (charId: Int?) -> Unit = {},
+    onFilter: (String, String?) -> Unit = { _, _ -> },
+    onClearFilters: () -> Unit = {},
+    currentFilters: Map<String, String?> = emptyMap()
 ) {
-
+    var showFilters by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -181,7 +200,7 @@ fun CharactersListScreen(
         containerColor = colorResource(R.color.greenVeryDark),
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {  },
+                onClick = { showFilters = true },
                 containerColor = colorResource(R.color.greenDarkEmerald),
                 shape = CircleShape
             ) {
@@ -189,7 +208,15 @@ fun CharactersListScreen(
             }
         },
     ) { innerPadding ->
-
+        if (showFilters) {
+            FilterBottomSheet(
+                currentFilters = currentFilters,
+                onFilterSelected = onFilter,
+                onClearFilters = onClearFilters,
+                onDismiss = { showFilters = false },
+                charsList = charsList
+            )
+        }
         Column(
             modifier = Modifier.padding(innerPadding),
         ) {
@@ -369,6 +396,119 @@ fun CharactersListScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FilterBottomSheet(
+    currentFilters: Map<String, String?> = mapOf(
+        "Type" to "Value",
+        "Type" to "Value",
+        "Type" to "Value",
+        "Type" to "Value",
+        "Type" to "Value",
+    ),
+    onFilterSelected: (String, String?) -> Unit = { _, _ -> },
+    onClearFilters: () -> Unit = {},
+    onDismiss: () -> Unit = {},
+    charsList: List<CharacterModel> = listOf(aChar, aChar, aChar, aChar, aChar, aChar),
+) {
+    val sheetState = rememberModalBottomSheetState()
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = colorResource(R.color.greenDarkEmerald),
+        contentColor = Color.White
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Filters", fontFamily = getSchwiftyFont, color = Color.White)
+                IconButton(onClick = onClearFilters) {
+                    Icon(
+                        painterResource(R.drawable.ic_clear),
+                        contentDescription = "Clear",
+                        tint = Color.White
+                    )
+                }
+            }
+            HorizontalDivider(color = Color.White.copy(alpha = 0.5f))
+            val filterOptions = listOf("Status", "Gender", "Species", "Origin", "Location")
+            filterOptions.forEach { filterType ->
+                FilterSection(
+                    title = filterType,
+                    selectedValue = currentFilters[filterType], //observe Map of filterType to state
+                    options = when (filterType) {
+                        "Status" -> charsList.mapNotNull { it.status }.distinct()
+                        "Gender" -> charsList.mapNotNull { it.gender }.distinct()
+                        "Species" -> charsList.mapNotNull { it.species }.distinct()
+                        "Origin" -> charsList.mapNotNull { it.origin?.name }.distinct()
+                        "Location" -> charsList.mapNotNull { it.location?.name }.distinct()
+                        else -> emptyList()
+                    },
+                    onOptionSelected = { onFilterSelected(filterType, it) }
+                )
+            }
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+    }
+}
+
+@Composable
+fun FilterSection(
+    title: String,
+    selectedValue: String?,
+    options: List<String>,
+    onOptionSelected: (String?) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .clickable { expanded = !expanded }
+            .padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                "$title: ${selectedValue ?: "All"}",
+                color = Color.White,
+                fontFamily = getSchwiftyFont
+            )
+            Icon(
+                painterResource(R.drawable.ic_menu),
+                contentDescription = null,
+                tint = Color.White
+            )
+
+        }
+        if (expanded) {
+            LazyColumn(modifier = Modifier.height(150.dp).padding(start = 16.dp)) {
+                item {
+                    Text(
+                        "All",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onOptionSelected(null); expanded = false }
+                            .padding(vertical = 4.dp),
+                        color = if (selectedValue == null) Color.Green else Color.White
+                    )
+                }
+                items(options.size) { index ->
+                    val option = options[index]
+                    Text(
+                        option,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onOptionSelected(option); expanded = false }
+                            .padding(vertical = 4.dp),
+                        color = if (selectedValue == option) Color.Green else Color.White
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun CharacterInfo(
     charId: Int?,
@@ -457,6 +597,14 @@ fun CharactersListScreenPreview() {
 fun CharacterInfoScreenPreview() {
     RickAndMortyTheme {
         CharacterInfoScreen()
+    }
+}
+
+@Preview(widthDp = 360, heightDp = 800)
+@Composable
+fun FilterBottomSheetPreview() {
+    RickAndMortyTheme {
+        FilterBottomSheet()
     }
 }
 
