@@ -26,6 +26,9 @@ class CharsViewModel @Inject constructor(
     val searchField: StateFlow<String> = mSearchField.asStateFlow()
     private val mIsRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = mIsRefreshing.asStateFlow()
+    private val mIsLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = mIsLoading.asStateFlow()
+
     private val mState = MutableStateFlow<List<CharacterModel>>(emptyList())
     val state: StateFlow<List<CharacterModel>> = combine(
         mState,
@@ -63,15 +66,18 @@ class CharsViewModel @Inject constructor(
         mSearchField.value = text
     }
     private suspend fun getData() {
+        mIsLoading.value = true
         useCaseHandler.execute(
             getPosts,
             object : UseCase.UseCaseCallback<GetPosts.ResponseValue> {
                 override suspend fun onSuccess(responseValue: GetPosts.ResponseValue) {
                     mState.value = responseValue.anValue
+                    mIsLoading.value = false
                     mIsRefreshing.value = false
                 }
                 override fun onError(t: Throwable) {
                     mStateErr.value = t
+                    mIsLoading.value = false
                     mIsRefreshing.value = false
                 }
             }

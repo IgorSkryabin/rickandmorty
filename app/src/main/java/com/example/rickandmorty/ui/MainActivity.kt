@@ -29,6 +29,7 @@ import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -139,10 +140,12 @@ fun CharactersList(
     val charsList by charsViewModel.state.collectAsState()
     val errorMsg by charsViewModel.stateErr.collectAsState()
     val isRefreshing by charsViewModel.isRefreshing.collectAsState()
+    val isLoading by charsViewModel.isLoading.collectAsState()
 
     CharactersListScreen(
         charsList = charsList,
         isRefreshing = isRefreshing,
+        isLoading = isLoading,
         errorMsg = errorMsg.message.toString(),
         onRefresh = { charsViewModel.onRefresh() },
         onSearch = { charsViewModel.searchByTextField(it) },
@@ -155,6 +158,7 @@ fun CharactersList(
 fun CharactersListScreen(
     charsList: List<CharacterModel> = listOf(aChar, aChar, aChar, aChar, aChar, aChar),
     isRefreshing: Boolean = false,
+    isLoading: Boolean = false,
     errorMsg: String = "",
     onRefresh: () -> Unit = {},
     onSearch: (String) -> Unit = {},
@@ -228,6 +232,9 @@ fun CharactersListScreen(
                     .pullRefresh(pullRefreshState),
                 contentAlignment = Alignment.Center
             ) {
+                if (isLoading) {
+                    CircularProgressIndicator(color = Color.Green)
+                }
                 if (charsList.isEmpty() && errorMsg.isNotBlank()) {
                     Row(Modifier.padding(horizontal = 5.dp)) {
                         Text(
