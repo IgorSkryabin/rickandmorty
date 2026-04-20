@@ -1,5 +1,6 @@
 package com.example.rickandmorty.dataSource
 
+import com.example.rickandmorty.common.ConnectivityManager
 import com.example.rickandmorty.dataSource.local.LocalDataSource
 import com.example.rickandmorty.models.CharacterModel
 import javax.inject.Inject
@@ -8,14 +9,17 @@ import javax.inject.Singleton
 @Singleton
 class DataSourceRepo @Inject constructor(
     private val localDataSource: BaseDataSource,
-    private val remoteDataSource: BaseDataSource
+    private val remoteDataSource: BaseDataSource,
+    private val connectivityManager: ConnectivityManager
 ): BaseDataSource {
     private var isCacheDirty = false
     private val cacheTimeout = 5 * 60 * 1000
     override suspend fun getData(
         callback: BaseDataSource.DataSourceCallback
     ) {
-        localDataSource.getData(object: BaseDataSource.DataSourceCallback {
+        connectivityManager.observeNetworkStatus.collect { isConnected ->
+            if (isConnected) {
+                localDataSource.getData(object: BaseDataSource.DataSourceCallback {
                     override suspend fun onSuccess(charactersList: List<CharacterModel>) {
                         checkCacheDirty()
                         if (charactersList.isNotEmpty() && !isCacheDirty) {
@@ -28,6 +32,10 @@ class DataSourceRepo @Inject constructor(
                         callback.onError(errorMsg)
                     }
                 })
+            } else {
+                loadFromLocal(callback)
+            }
+        }
     }
     suspend fun loadFromRemote(
         callback: BaseDataSource.DataSourceCallback

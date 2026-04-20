@@ -2,6 +2,7 @@ package com.example.rickandmorty.di.modules
 
 import android.content.Context
 import androidx.room.Room
+import com.example.rickandmorty.common.ConnectivityManager
 import com.example.rickandmorty.dataSource.BaseDataSource
 import com.example.rickandmorty.dataSource.DataSourceRepo
 import com.example.rickandmorty.dataSource.local.AppDatabase
@@ -28,12 +29,21 @@ class AppModule {
     @Provides
     fun provideRepo(
         localDataSource: LocalDataSource,
-        remoteDataSource: RemoteDataSource
+        remoteDataSource: RemoteDataSource,
+        connectivityManager: ConnectivityManager
     ): DataSourceRepo {
         return DataSourceRepo(
             localDataSource,
-            remoteDataSource
+            remoteDataSource,
+            connectivityManager
         )
+    }
+    @Singleton
+    @Provides
+    fun provideConnectivityManager(
+        @ApplicationContext context: Context
+    ): ConnectivityManager {
+        return ConnectivityManager(context)
     }
     @Singleton
     @Provides
