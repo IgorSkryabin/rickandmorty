@@ -143,12 +143,14 @@ fun CharactersList(
     charsViewModel: CharsViewModel = hiltViewModel()
 ) {
     val charsList by charsViewModel.state.collectAsState()
+    val unfilteredCharsList by charsViewModel.unfilteredState.collectAsState()
     val errorMsg by charsViewModel.stateErr.collectAsState()
     val isRefreshing by charsViewModel.isRefreshing.collectAsState()
     val isLoading by charsViewModel.isLoading.collectAsState()
 
     CharactersListScreen(
         charsList = charsList,
+        unfilteredCharsList = unfilteredCharsList,
         isRefreshing = isRefreshing,
         isLoading = isLoading,
         errorMsg = errorMsg.message.toString(),
@@ -173,6 +175,7 @@ fun CharactersList(
 @Composable
 fun CharactersListScreen(
     charsList: List<CharacterModel> = listOf(aChar, aChar, aChar, aChar, aChar, aChar),
+    unfilteredCharsList: List<CharacterModel> = listOf(aChar, aChar, aChar, aChar, aChar, aChar),
     isRefreshing: Boolean = false,
     isLoading: Boolean = false,
     errorMsg: String = "",
@@ -214,7 +217,7 @@ fun CharactersListScreen(
                 onFilterSelected = onFilter,
                 onClearFilters = onClearFilters,
                 onDismiss = { showFilters = false },
-                charsList = charsList
+                unfilteredCharsList = unfilteredCharsList,
             )
         }
         Column(
@@ -409,7 +412,7 @@ fun FilterBottomSheet(
     onFilterSelected: (String, String?) -> Unit = { _, _ -> },
     onClearFilters: () -> Unit = {},
     onDismiss: () -> Unit = {},
-    charsList: List<CharacterModel> = listOf(aChar, aChar, aChar, aChar, aChar, aChar),
+    unfilteredCharsList: List<CharacterModel> = listOf(aChar, aChar, aChar, aChar, aChar, aChar),
 ) {
     val sheetState = rememberModalBottomSheetState()
     ModalBottomSheet(
@@ -440,11 +443,11 @@ fun FilterBottomSheet(
                     title = filterType,
                     selectedValue = currentFilters[filterType], //observe Map of filterType to state
                     options = when (filterType) {
-                        "Status" -> charsList.mapNotNull { it.status }.distinct()
-                        "Gender" -> charsList.mapNotNull { it.gender }.distinct()
-                        "Species" -> charsList.mapNotNull { it.species }.distinct()
-                        "Origin" -> charsList.mapNotNull { it.origin?.name }.distinct()
-                        "Location" -> charsList.mapNotNull { it.location?.name }.distinct()
+                        "Status" -> unfilteredCharsList.mapNotNull { it.status }.distinct()
+                        "Gender" -> unfilteredCharsList.mapNotNull { it.gender }.distinct()
+                        "Species" -> unfilteredCharsList.mapNotNull { it.species }.distinct()
+                        "Origin" -> unfilteredCharsList.mapNotNull { it.origin?.name }.distinct()
+                        "Location" -> unfilteredCharsList.mapNotNull { it.location?.name }.distinct()
                         else -> emptyList()
                     },
                     onOptionSelected = { onFilterSelected(filterType, it) }

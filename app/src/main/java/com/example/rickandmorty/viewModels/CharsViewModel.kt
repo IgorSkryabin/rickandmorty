@@ -78,6 +78,8 @@ class CharsViewModel @Inject constructor(
         emptyList()
     )
 
+    val unfilteredState: StateFlow<List<CharacterModel>> = mState.asStateFlow()
+
     private val mStateErr = MutableStateFlow(Throwable(""))
     val stateErr: StateFlow<Throwable> = mStateErr.asStateFlow()
 
