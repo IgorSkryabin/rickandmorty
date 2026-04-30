@@ -557,31 +557,73 @@ fun CharacterInfoScreen(
         },
         containerColor = colorResource(R.color.greenVeryDark),
     ) { innerPadding ->
-        Row(Modifier.padding(innerPadding).fillMaxSize()) {
-            if (LocalInspectionMode.current) {
-                Image(
-                    painter = painterResource(R.drawable.rick_and_morty_prev),
-                    contentDescription = "This is ${charModel.name}",
-                    modifier = Modifier.width(180.dp)
-                )
-            } else {
-                val localFile = File(LocalContext.current.filesDir, "${charModel.id}.jpg")
-                AsyncImage(
-                    model = if (localFile.exists()) localFile else charModel.image,
-                    contentDescription = "This is ${charModel.name}",
-                    modifier = Modifier.width(180.dp),
-                    contentScale = ContentScale.FillWidth
+        Row(Modifier
+            .padding(innerPadding)
+            .fillMaxWidth()
+        ) {
+
+            val textColor = colorResource(R.color.white)
+
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (LocalInspectionMode.current) {
+                    Image(
+                        painter = painterResource(R.drawable.rick_and_morty_prev),
+                        contentDescription = "This is ${charModel.name}",
+                        modifier = Modifier.width(180.dp)
+                    )
+                } else {
+                    val localFile = File(LocalContext.current.filesDir, "${charModel.id}.jpg")
+                    AsyncImage(
+                        model = if (localFile.exists()) localFile else charModel.image,
+                        contentDescription = "This is ${charModel.name}",
+                        modifier = Modifier.width(180.dp),
+                        contentScale = ContentScale.FillWidth
+                    )
+                }
+                Text(
+                    "${charModel.name}",
+                    color = textColor,
+                    fontFamily = getSchwiftyFont,
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
                 )
             }
-            Column {
-                val textColor = colorResource(R.color.white)
-                Text("Name: ${charModel.name}", color = textColor, fontFamily = getSchwiftyFont)
-                Text("Status: ${charModel.status}", color = textColor, fontFamily = getSchwiftyFont)
-                Text("Species: ${charModel.species}", color = textColor, fontFamily = getSchwiftyFont)
-                Text("Type: ${charModel.type}", color = textColor, fontFamily = getSchwiftyFont)
-                Text("Gender: ${charModel.gender}", color = textColor, fontFamily = getSchwiftyFont)
-                Text("Origin: ${charModel.origin?.name}", color = textColor, fontFamily = getSchwiftyFont)
-                Text("Location: ${charModel.location?.name}", color = textColor, fontFamily = getSchwiftyFont)
+            Spacer(modifier = Modifier.width(20.dp))
+            Column(
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+                modifier = Modifier.align(Alignment.CenterVertically).fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                val textAlignCenter = TextAlign.Center
+                Text(
+                    "Status: \n ${charModel.status}",
+                    color = textColor,
+                    fontFamily = getSchwiftyFont,
+                    textAlign = textAlignCenter
+                )
+                Text(
+                    "Species: \n ${charModel.species}",
+                    color = textColor,
+                    fontFamily = getSchwiftyFont,
+                    textAlign = textAlignCenter
+                )
+                Text(
+                    "Gender: \n ${charModel.gender}",
+                    color = textColor,
+                    fontFamily = getSchwiftyFont,
+                    textAlign = textAlignCenter
+                )
+                Text(
+                    "Origin: \n ${charModel.origin?.name}",
+                    color = textColor,
+                    fontFamily = getSchwiftyFont,
+                    textAlign = textAlignCenter
+                )
+                Text(
+                    "Location: \n ${charModel.location?.name}",
+                    color = textColor,
+                    fontFamily = getSchwiftyFont,
+                    textAlign = textAlignCenter
+                )
             }
         }
     }
