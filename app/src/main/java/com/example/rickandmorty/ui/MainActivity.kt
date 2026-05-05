@@ -61,6 +61,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -94,6 +95,8 @@ class MainActivity : ComponentActivity() {
 }
 
 val getSchwiftyFont = FontFamily(Font(R.font.get_schwifty))
+val tahomaFont = FontFamily(Font(R.font.tahoma))
+val causeFont = FontFamily(Font(R.font.cause))
 
 @Serializable
 object CharsListDest
@@ -234,7 +237,7 @@ fun CharactersListScreen(
                     label = { Text(
                         text = "Search",
                         color = Color.White,
-                        fontFamily = getSchwiftyFont
+                        fontFamily = tahomaFont
                     ) },
                     modifier = Modifier.weight(1f),
                     colors = TextFieldDefaults.colors(
@@ -342,7 +345,8 @@ fun CharactersListScreen(
                                 Spacer(Modifier.height(20.dp))
                                 Text(
                                     "${charModel.name}",
-                                    fontFamily = getSchwiftyFont,
+                                    fontFamily = causeFont,
+                                    fontWeight = FontWeight.Bold,
                                     textAlign = TextAlign.Center
                                 )
                                 Spacer(Modifier.height(10.dp))
@@ -361,14 +365,13 @@ fun CharactersListScreen(
                                     ) {
                                         Text(
                                             "${charModel.species}",
-                                            fontFamily = getSchwiftyFont,
+                                            fontFamily = causeFont,
                                             textAlign = TextAlign.End
                                         )
                                     }
 
                                     Text(
                                         "|",
-                                        fontFamily = getSchwiftyFont,
                                         modifier = Modifier.padding(horizontal = 3.dp)
                                     )
                                     Row(
@@ -378,7 +381,7 @@ fun CharactersListScreen(
                                     ) {
                                         Text(
                                             "${charModel.origin?.name}",
-                                            fontFamily = getSchwiftyFont,
+                                            fontFamily = causeFont
                                         )
                                     }
                                 }
@@ -583,7 +586,7 @@ fun CharacterInfoScreen(
                 Text(
                     "${charModel.name}",
                     color = textColor,
-                    fontFamily = getSchwiftyFont,
+                    fontFamily = causeFont,
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                 )
             }
@@ -597,31 +600,31 @@ fun CharacterInfoScreen(
                 Text(
                     "Status: \n ${charModel.status}",
                     color = textColor,
-                    fontFamily = getSchwiftyFont,
+                    fontFamily = causeFont,
                     textAlign = textAlignCenter
                 )
                 Text(
                     "Species: \n ${charModel.species}",
                     color = textColor,
-                    fontFamily = getSchwiftyFont,
+                    fontFamily = causeFont,
                     textAlign = textAlignCenter
                 )
                 Text(
                     "Gender: \n ${charModel.gender}",
                     color = textColor,
-                    fontFamily = getSchwiftyFont,
+                    fontFamily = causeFont,
                     textAlign = textAlignCenter
                 )
                 Text(
                     "Origin: \n ${charModel.origin?.name}",
                     color = textColor,
-                    fontFamily = getSchwiftyFont,
+                    fontFamily = causeFont,
                     textAlign = textAlignCenter
                 )
                 Text(
                     "Location: \n ${charModel.location?.name}",
                     color = textColor,
-                    fontFamily = getSchwiftyFont,
+                    fontFamily = causeFont,
                     textAlign = textAlignCenter
                 )
             }
